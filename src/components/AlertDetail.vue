@@ -223,13 +223,24 @@
               flat
             >
               <v-alert
-                v-if="lastNote && lastNote.text"
-                :value="lastNote"
+                v-if="notes"
+                :value="notes"
                 type="info"
                 class="ma-1"
               >
-                <b>Last Note</b> by <b>{{ lastNote.user || 'Anonymous' }}</b> ({{ lastNote.updateTime | timeago }})<br>
-                {{ lastNote.text }}
+                <b>Notes</b>
+                <p
+                  v-for="(note, i) in notes"
+                  :key="i"
+                >
+                  <b>{{ note.user || 'Anonymous' }}</b> added note on
+                  <b><date-time
+                    v-if="note.updateTime"
+                    :value="note.updateTime"
+                    format="longDate"
+                  /></b> ({{ note.updateTime | timeago }})<br>
+                  <i>{{ note.text }}</i>
+                </p>
               </v-alert>
               <v-card-text>
                 <div class="flex xs12 ma-1">
@@ -452,6 +463,25 @@
                         <span class="label">
                           {{ item.status | capitalize }}
                         </span>
+                        <span
+                          v-if="statusNote && statusNote.user"
+                        >&nbsp;by <b>{{ statusNote.user }}</b> ({{ statusNote.updateTime | timeago }})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  v-if="statusNote && statusNote.user"
+                  class="flex xs12 ma-1"
+                >
+                  <div class="d-flex align-top">
+                    <div class="flex xs3 text-xs-left">
+                      <div class="grey--text" />
+                    </div>
+                    <div class="flex xs6 text-xs-left">
+                      <div>
+                        <i>{{ statusNote.text }}</i>
                       </div>
                     </div>
                   </div>
@@ -777,8 +807,11 @@ export default {
         ? this.item.history.map((h, index) => ({ index: index, ...h }))
         : []
     },
-    lastNote() {
-      return this.history.filter(h => h.type == 'note').pop()
+    notes() {
+      return this.history.filter(h => h.type == 'note')
+    },
+    statusNote() {
+      return this.history.filter(h => h.type != 'note' && h.status == this.item.status).pop()
     },
     headersByScreenSize() {
       return this.headers.filter(
